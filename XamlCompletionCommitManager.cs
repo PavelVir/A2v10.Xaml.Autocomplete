@@ -98,10 +98,17 @@ internal class XamlCompletionCommitManager : IAsyncCompletionCommitManager
         ITextBuffer buffer,
         int caretPosition)
     {
-        var newSnapshot = buffer.CurrentSnapshot;
-        if (caretPosition < 0 || caretPosition > newSnapshot.Length)
-            return;
-        var caretPoint = new SnapshotPoint(newSnapshot, caretPosition);
-        session.TextView.Caret.MoveTo(caretPoint);
+        // Defer caret movement: VS completion framework repositions the caret
+        // after TryCommit returns, overriding any synchronous MoveTo call.
+        var textView = session.TextView;
+        SynchronizationContext.Current?.Post(_ =>
+        {
+            var snapshot = buffer.CurrentSnapshot;
+            if (caretPosition >= 0 && caretPosition <= snapshot.Length)
+            {
+                var point = new SnapshotPoint(snapshot, caretPosition);
+                textView.Caret.MoveTo(point);
+            }
+        }, null);
     }
 }
