@@ -99,6 +99,34 @@ public class CommitCalculatorTests
         Assert.Equal(10, result.CaretOffset); // Grid.Row=" [here] "
     }
 
+    [Theory]
+    [InlineData("Width")]
+    [InlineData("Grid.Row")]
+    [InlineData("Command")]
+    public void Attribute_CaretOffset_LandsBetweenQuotes(string displayText)
+    {
+        var result = CommitCalculator.Attribute(displayText);
+        int offset = result.CaretOffset;
+
+        // Char immediately before caret = opening quote
+        Assert.Equal('"', result.Text[offset - 1]);
+        // Char at caret position = closing quote
+        Assert.Equal('"', result.Text[offset]);
+    }
+
+    [Theory]
+    [InlineData(0, "Command", 9)]
+    [InlineData(20, "Command", 29)]
+    [InlineData(100, "Width", 107)]
+    public void Attribute_AbsoluteCaretPosition_IsCorrect(
+        int spanStart, string displayText, int expectedAbsolutePosition)
+    {
+        var result = CommitCalculator.Attribute(displayText);
+        int absolutePosition = spanStart + result.CaretOffset;
+
+        Assert.Equal(expectedAbsolutePosition, absolutePosition);
+    }
+
     #endregion
 
     #region Value
@@ -133,7 +161,9 @@ public class CommitCalculatorTests
 
         Assert.True(result.Handled);
         Assert.Equal("!--  -->", result.Text);
-        Assert.Equal(4, result.CaretOffset); // !-- [here]  -->
+        Assert.Equal(4, result.CaretOffset);
+        // Caret lands between "!-- " and " -->"
+        Assert.Equal("!-- ", result.Text.Substring(0, result.CaretOffset));
     }
 
     #endregion
@@ -147,7 +177,9 @@ public class CommitCalculatorTests
 
         Assert.True(result.Handled);
         Assert.Equal("![CDATA[]]>", result.Text);
-        Assert.Equal(8, result.CaretOffset); // ![CDATA[ [here] ]]>
+        Assert.Equal(8, result.CaretOffset);
+        // Caret lands between "![CDATA[" and "]]>"
+        Assert.Equal("![CDATA[", result.Text.Substring(0, result.CaretOffset));
     }
 
     #endregion

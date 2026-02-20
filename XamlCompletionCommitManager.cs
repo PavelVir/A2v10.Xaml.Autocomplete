@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace A2v10XamlAutocomplete;
 
@@ -87,28 +88,36 @@ internal class XamlCompletionCommitManager : IAsyncCompletionCommitManager
         }
 
         if (result.CaretOffset >= 0)
-            MoveCaretSafe(session, buffer, spanStart + result.CaretOffset);
+            MoveCaretDeferred(session.TextView, buffer, spanStart + result.CaretOffset);
 
         return new CommitResult(
             true, CommitBehavior.SuppressFurtherTypeCharCommandHandlers);
     }
 
-    static void MoveCaretSafe(
-        IAsyncCompletionSession session,
+    static void MoveCaretDeferred(
+        ITextView textView,
         ITextBuffer buffer,
         int caretPosition)
     {
-        // Defer caret movement: VS completion framework repositions the caret
-        // after TryCommit returns, overriding any synchronous MoveTo call.
-        var textView = session.TextView;
-        SynchronizationContext.Current?.Post(_ =>
+        var snapshot = buffer.CurrentSnapshot;
+        if (caretPosition < 0 || caretPosition > snapshot.Length)
+            return;
+
+        // ITrackingPoint survives subsequent snapshot changes (e.g. auto-formatting)
+        // so the position stays correct even if VS re-indents the line.
+        var trackingPoint = snapshot.CreateTrackingPoint(
+            caretPosition, PointTrackingMode.Negative);
+
+        // VS completion framework repositions the caret after TryCommit returns,
+        // overriding any synchronous MoveTo. Wait for the next LayoutChanged event
+        // which fires after VS finishes all post-commit processing and layout.
+        EventHandler<TextViewLayoutChangedEventArgs> handler = null;
+        handler = (s, e) =>
         {
-            var snapshot = buffer.CurrentSnapshot;
-            if (caretPosition >= 0 && caretPosition <= snapshot.Length)
-            {
-                var point = new SnapshotPoint(snapshot, caretPosition);
-                textView.Caret.MoveTo(point);
-            }
-        }, null);
+            textView.LayoutChanged -= handler;
+            var point = trackingPoint.GetPoint(textView.TextSnapshot);
+            textView.Caret.MoveTo(point);
+        };
+        textView.LayoutChanged += handler;
     }
 }
