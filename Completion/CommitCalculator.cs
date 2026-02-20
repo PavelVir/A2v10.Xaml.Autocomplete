@@ -43,9 +43,11 @@ internal static class CommitCalculator
 
     public static InsertionResult Attribute(string displayText)
     {
-        string text = displayText + "=\"\"";
-        int caretOffset = displayText.Length + 2; // between quotes
-        return new InsertionResult(text, caretOffset);
+        // Insert name + "=" only. VS XML editor's AutoInsertAttributeQuotes
+        // adds "" and positions the caret between them via buffer-change handler
+        // (not a TypeChar handler, so SuppressFurtherTypeCharCommandHandlers
+        // cannot suppress it — inserting our own quotes causes duplicates).
+        return new InsertionResult(displayText + "=", caretOffset: -1);
     }
 
     public static InsertionResult Value(string displayText, char typedChar)

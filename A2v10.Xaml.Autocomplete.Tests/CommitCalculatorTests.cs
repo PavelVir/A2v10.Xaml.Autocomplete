@@ -80,51 +80,23 @@ public class CommitCalculatorTests
     #region Attribute
 
     [Fact]
-    public void Attribute_SimpleProperty_InsertsWithQuotesAndCaretBetween()
+    public void Attribute_SimpleProperty_InsertsNameWithEquals()
     {
         var result = CommitCalculator.Attribute("Width");
 
         Assert.True(result.Handled);
-        Assert.Equal("Width=\"\"", result.Text);
-        Assert.Equal(7, result.CaretOffset); // Width=" [here] "
+        Assert.Equal("Width=", result.Text);
+        Assert.Equal(-1, result.CaretOffset);
     }
 
     [Fact]
-    public void Attribute_DottedProperty_InsertsWithQuotesAndCaretBetween()
+    public void Attribute_DottedProperty_InsertsNameWithEquals()
     {
         var result = CommitCalculator.Attribute("Grid.Row");
 
         Assert.True(result.Handled);
-        Assert.Equal("Grid.Row=\"\"", result.Text);
-        Assert.Equal(10, result.CaretOffset); // Grid.Row=" [here] "
-    }
-
-    [Theory]
-    [InlineData("Width")]
-    [InlineData("Grid.Row")]
-    [InlineData("Command")]
-    public void Attribute_CaretOffset_LandsBetweenQuotes(string displayText)
-    {
-        var result = CommitCalculator.Attribute(displayText);
-        int offset = result.CaretOffset;
-
-        // Char immediately before caret = opening quote
-        Assert.Equal('"', result.Text[offset - 1]);
-        // Char at caret position = closing quote
-        Assert.Equal('"', result.Text[offset]);
-    }
-
-    [Theory]
-    [InlineData(0, "Command", 9)]
-    [InlineData(20, "Command", 29)]
-    [InlineData(100, "Width", 107)]
-    public void Attribute_AbsoluteCaretPosition_IsCorrect(
-        int spanStart, string displayText, int expectedAbsolutePosition)
-    {
-        var result = CommitCalculator.Attribute(displayText);
-        int absolutePosition = spanStart + result.CaretOffset;
-
-        Assert.Equal(expectedAbsolutePosition, absolutePosition);
+        Assert.Equal("Grid.Row=", result.Text);
+        Assert.Equal(-1, result.CaretOffset);
     }
 
     #endregion
