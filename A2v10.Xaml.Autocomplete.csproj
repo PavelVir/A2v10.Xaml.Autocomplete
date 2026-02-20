@@ -62,6 +62,7 @@
     <Compile Include="Schema\XamlSchemaLoader.cs" />
     <Compile Include="Parser\XmlContext.cs" />
     <Compile Include="Parser\XmlContextParser.cs" />
+    <Compile Include="Completion\CommitCalculator.cs" />
     <Compile Include="XamlCompletionCommitManager.cs" />
     <Compile Include="XamlCompletionCommitManagerProvider.cs" />
     <Compile Include="XamlCompletionSource.cs" />

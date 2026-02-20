@@ -28,6 +28,7 @@
     <Compile Include="..\Schema\ElementInfo.cs" Link="Linked\Schema\ElementInfo.cs" />
     <Compile Include="..\Schema\PropertyInfo.cs" Link="Linked\Schema\PropertyInfo.cs" />
     <Compile Include="..\Schema\AttachedPropertyInfo.cs" Link="Linked\Schema\AttachedPropertyInfo.cs" />
+    <Compile Include="..\Completion\CommitCalculator.cs" Link="Linked\Completion\CommitCalculator.cs" />
   </ItemGroup>
 
   <!-- Embed the schema JSON with the same logical name the loader expects -->
