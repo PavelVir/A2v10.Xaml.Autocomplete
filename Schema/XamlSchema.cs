@@ -1,8 +1,9 @@
-// Copyright © 2026 Oleksandr Kukhtin. All rights reserved.
+// Copyright © 2026 Virich Pavlo. All rights reserved.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 
 namespace A2v10XamlAutocomplete;
@@ -48,8 +49,10 @@ internal sealed class XamlSchema
             var rawSchema = XamlSchemaLoader.LoadFromResource();
             return BuildFromRaw(rawSchema);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Debug.WriteLine(
+                $"[A2v10.Xaml.Autocomplete] Failed to load schema: {ex}");
             return CreateFallback();
         }
     }

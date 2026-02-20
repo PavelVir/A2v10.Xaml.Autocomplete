@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" ?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="A2v10.Xaml.Autocomplete.b35e11f3-ff5d-4aa5-8108-968052f6d2bd" Version="1.0" Language="en-US" Publisher="Олександр Кухтін" />
+        <Identity Id="A2v10.Xaml.Autocomplete.b35e11f3-ff5d-4aa5-8108-968052f6d2bd" Version="1.0" Language="en-US" Publisher="Virich Pavlo" />
         <DisplayName>A2v10.Xaml.Autocomplete</DisplayName>
         <Description xml:space="preserve">A2v10 XAML Autocomplete provider for Visual Studio 2022,2026</Description>
         <Tags>A2v10</Tags>

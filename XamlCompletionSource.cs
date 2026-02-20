@@ -1,4 +1,4 @@
-// Copyright © 2026 Oleksandr Kukhtin. All rights reserved.
+// Copyright © 2026 Virich Pavlo. All rights reserved.
 
 using System;
 using System.Collections.Immutable;
@@ -13,6 +13,24 @@ namespace A2v10XamlAutocomplete;
 
 internal class XamlCompletionSource : IAsyncCompletionSource
 {
+    // Cached context from InitializeCompletion to avoid double parsing.
+    // Single volatile reference ensures atomic read/write of the entire cache.
+    private sealed class CachedParseResult
+    {
+        public readonly XmlContext Context;
+        public readonly int Version;
+        public readonly int Position;
+
+        public CachedParseResult(XmlContext context, int version, int position)
+        {
+            Context = context;
+            Version = version;
+            Position = position;
+        }
+    }
+
+    private volatile CachedParseResult _cached;
+
     public CompletionStartData InitializeCompletion(
         CompletionTrigger trigger, SnapshotPoint triggerLocation,
         CancellationToken token)
@@ -44,6 +62,9 @@ internal class XamlCompletionSource : IAsyncCompletionSource
         if (length < 0)
             return CompletionStartData.DoesNotParticipateInCompletion;
 
+        _cached = new CachedParseResult(
+            context, snapshot.Version.VersionNumber, position);
+
         var span = new SnapshotSpan(
             snapshot, context.PartialInputStart, length);
 
@@ -59,10 +80,23 @@ internal class XamlCompletionSource : IAsyncCompletionSource
         token.ThrowIfCancellationRequested();
 
         var snapshot = triggerLocation.Snapshot;
-        string text = snapshot.GetText();
         int position = triggerLocation.Position;
 
-        var context = XmlContextParser.Parse(text, position);
+        XmlContext context;
+        var cached = _cached;
+        if (cached != null
+            && cached.Version == snapshot.Version.VersionNumber
+            && cached.Position == position)
+        {
+            context = cached.Context;
+        }
+        else
+        {
+            string text = snapshot.GetText();
+            context = XmlContextParser.Parse(text, position);
+        }
+        _cached = null;
+
         var schema = XamlSchema.Instance;
         string prefix = context.A2v10Prefix;
 
@@ -101,7 +135,7 @@ internal class XamlCompletionSource : IAsyncCompletionSource
     {
         if (!item.Properties.TryGetProperty<Element>(
                 nameof(Element), out var elem))
-            return Task.FromResult<object>(null);
+            return Task.FromResult<object>(string.Empty);
 
         var schema = XamlSchema.Instance;
         string description;

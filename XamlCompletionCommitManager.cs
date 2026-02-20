@@ -1,4 +1,4 @@
-// Copyright © 2026 Oleksandr Kukhtin. All rights reserved.
+// Copyright © 2026 Virich Pavlo. All rights reserved.
 
 using System;
 using System.Collections.Generic;
@@ -140,6 +140,7 @@ internal class XamlCompletionCommitManager : IAsyncCompletionCommitManager
     {
         var span = session.ApplicableToSpan
             .GetSpan(buffer.CurrentSnapshot);
+        int spanStart = span.Start.Position;
         String insertText = item.DisplayText + "=\"\"";
 
         using (var edit = buffer.CreateEdit())
@@ -148,12 +149,10 @@ internal class XamlCompletionCommitManager : IAsyncCompletionCommitManager
             edit.Apply();
         }
 
-        // Position caret between the quotes: after AttrName="
-        int caretPosition = span.Start.Position
-            + item.DisplayText.Length + 2; // 2 = ="
-        var newSnapshot = buffer.CurrentSnapshot;
-        var caretPoint = new SnapshotPoint(newSnapshot, caretPosition);
-        session.TextView.Caret.MoveTo(caretPoint);
+        // Caret between the quotes: spanStart + AttrName="[here]"
+        // spanStart is stable — our edit only replaces text starting at this position.
+        int caretPosition = spanStart + item.DisplayText.Length + 2;
+        MoveCaretSafe(session, buffer, caretPosition);
 
         return new CommitResult(
             true, CommitBehavior.SuppressFurtherTypeCharCommandHandlers);
@@ -192,6 +191,7 @@ internal class XamlCompletionCommitManager : IAsyncCompletionCommitManager
     {
         var span = session.ApplicableToSpan
             .GetSpan(buffer.CurrentSnapshot);
+        int spanStart = span.Start.Position;
         String insertText = "!--  -->";
 
         using (var edit = buffer.CreateEdit())
@@ -200,11 +200,8 @@ internal class XamlCompletionCommitManager : IAsyncCompletionCommitManager
             edit.Apply();
         }
 
-        // Position caret after "!-- " (4 chars from start of inserted text)
-        int caretPosition = span.Start.Position + 4;
-        var newSnapshot = buffer.CurrentSnapshot;
-        var caretPoint = new SnapshotPoint(newSnapshot, caretPosition);
-        session.TextView.Caret.MoveTo(caretPoint);
+        int caretPosition = spanStart + 4;
+        MoveCaretSafe(session, buffer, caretPosition);
 
         return new CommitResult(
             true, CommitBehavior.SuppressFurtherTypeCharCommandHandlers);
@@ -217,6 +214,7 @@ internal class XamlCompletionCommitManager : IAsyncCompletionCommitManager
     {
         var span = session.ApplicableToSpan
             .GetSpan(buffer.CurrentSnapshot);
+        int spanStart = span.Start.Position;
         String insertText = "![CDATA[]]>";
 
         using (var edit = buffer.CreateEdit())
@@ -225,13 +223,22 @@ internal class XamlCompletionCommitManager : IAsyncCompletionCommitManager
             edit.Apply();
         }
 
-        // Position caret after "![CDATA[" (8 chars from start of inserted text)
-        int caretPosition = span.Start.Position + 8;
-        var newSnapshot = buffer.CurrentSnapshot;
-        var caretPoint = new SnapshotPoint(newSnapshot, caretPosition);
-        session.TextView.Caret.MoveTo(caretPoint);
+        int caretPosition = spanStart + 8;
+        MoveCaretSafe(session, buffer, caretPosition);
 
         return new CommitResult(
             true, CommitBehavior.SuppressFurtherTypeCharCommandHandlers);
+    }
+
+    static void MoveCaretSafe(
+        IAsyncCompletionSession session,
+        ITextBuffer buffer,
+        int caretPosition)
+    {
+        var newSnapshot = buffer.CurrentSnapshot;
+        if (caretPosition < 0 || caretPosition > newSnapshot.Length)
+            return;
+        var caretPoint = new SnapshotPoint(newSnapshot, caretPosition);
+        session.TextView.Caret.MoveTo(caretPoint);
     }
 }

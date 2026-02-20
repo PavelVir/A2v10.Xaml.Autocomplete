@@ -1,4 +1,4 @@
-// Copyright (c) 2026. Schema generator for A2v10 XAML autocomplete.
+// Copyright © 2026 Virich Pavlo. All rights reserved.
 
 using System.ComponentModel;
 using System.Reflection;

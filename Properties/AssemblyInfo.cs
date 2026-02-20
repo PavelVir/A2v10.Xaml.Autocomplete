@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("A2v10.Xaml.Autocomplete")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Oleksandr Kukhtin")]
+[assembly: AssemblyCompany("Virich Pavlo")]
 [assembly: AssemblyProduct("A2v10.Xaml.Autocomplete")]
 [assembly: AssemblyCopyright("")]
 [assembly: AssemblyTrademark("")]

@@ -1,6 +1,6 @@
-﻿// Copyright © 2026 Oleksandr Kukhtin. All rights reserved.
+// Copyright © 2026 Virich Pavlo. All rights reserved.
 
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.ComponentModel.Composition;
 
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
@@ -14,16 +14,15 @@ namespace A2v10XamlAutocomplete;
 [ContentType("xml")]
 internal class XamlCompletionCommitManagerProvider : IAsyncCompletionCommitManagerProvider
 {
-    IDictionary<ITextView, IAsyncCompletionCommitManager> cache = new Dictionary<ITextView, IAsyncCompletionCommitManager>();
+    private readonly ConcurrentDictionary<ITextView, IAsyncCompletionCommitManager> _cache = new();
 
     public IAsyncCompletionCommitManager GetOrCreate(ITextView textView)
     {
-        if (cache.TryGetValue(textView, out var itemSource))
-            return itemSource;
-
-        var manager = new XamlCompletionCommitManager();
-        textView.Closed += (o, e) => cache.Remove(textView); // clean up memory as files are closed
-        cache.Add(textView, manager);
-        return manager;
+        return _cache.GetOrAdd(textView, tv =>
+        {
+            var manager = new XamlCompletionCommitManager();
+            tv.Closed += (o, e) => _cache.TryRemove(tv, out _);
+            return manager;
+        });
     }
 }

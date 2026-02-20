@@ -1,4 +1,4 @@
-// Copyright © 2026 Oleksandr Kukhtin. All rights reserved.
+// Copyright © 2026 Virich Pavlo. All rights reserved.
 
 using System;
 using System.Collections.Generic;
@@ -37,7 +37,9 @@ internal static class XmlContextParser
         string text, int scanStart, int position)
     {
         // Step 1: Check if we are inside a comment, CDATA, or PI.
-        var specialResult = CheckSpecialContexts(text, scanStart, position);
+        // Scan from position 0 (not scanStart) to correctly detect
+        // constructs that opened before the scan window.
+        var specialResult = CheckSpecialContexts(text, position);
         if (specialResult != null)
             return specialResult;
 
@@ -85,16 +87,18 @@ internal static class XmlContextParser
     #region Special contexts (comment, CDATA, PI)
 
     private static XmlContext CheckSpecialContexts(
-        string text, int scanStart, int position)
+        string text, int position)
     {
         // Strategy: find the nearest opening marker of special constructs
-        // scanning backward, and check if it's still open at cursor position.
+        // scanning backward from position to the start of the document,
+        // and check if it's still open at cursor position.
         // We check in order of priority (comment > CDATA > PI).
 
         int searchFrom = position - 1;
+        const int scanLimit = 0;
 
         // Check comment: look for "<!--" backward, verify no "-->" before position.
-        int commentOpen = FindBackward(text, "<!--", searchFrom, scanStart);
+        int commentOpen = FindBackward(text, "<!--", searchFrom, scanLimit);
         if (commentOpen >= 0)
         {
             int commentClose = FindForward(text, "-->", commentOpen + 4);
@@ -106,7 +110,7 @@ internal static class XmlContextParser
         }
 
         // Check CDATA: look for "<![CDATA[" backward.
-        int cdataOpen = FindBackward(text, "<![CDATA[", searchFrom, scanStart);
+        int cdataOpen = FindBackward(text, "<![CDATA[", searchFrom, scanLimit);
         if (cdataOpen >= 0 && (commentOpen < 0 || cdataOpen > commentOpen))
         {
             int cdataClose = FindForward(text, "]]>", cdataOpen + 9);
@@ -115,7 +119,7 @@ internal static class XmlContextParser
         }
 
         // Check PI: look for "<?" backward (but not "<!--").
-        int piOpen = FindBackward(text, "<?", searchFrom, scanStart);
+        int piOpen = FindBackward(text, "<?", searchFrom, scanLimit);
         if (piOpen >= 0
             && (commentOpen < 0 || piOpen > commentOpen)
             && (cdataOpen < 0 || piOpen > cdataOpen))

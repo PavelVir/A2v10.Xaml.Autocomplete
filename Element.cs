@@ -1,5 +1,5 @@
 ﻿
-// Copyright © 2026 Oleksandr Kukhtin. All rights reserved.
+// Copyright © 2026 Virich Pavlo. All rights reserved.
 
 using System;
 
