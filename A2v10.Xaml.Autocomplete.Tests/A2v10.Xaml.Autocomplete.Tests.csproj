@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>A2v10XamlAutocomplete.Tests</RootNamespace>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <!-- Linked source files from the main VSIX project -->
+  <ItemGroup>
+    <Compile Include="..\Parser\XmlContext.cs" Link="Linked\Parser\XmlContext.cs" />
+    <Compile Include="..\Parser\XmlContextParser.cs" Link="Linked\Parser\XmlContextParser.cs" />
+    <Compile Include="..\Schema\XamlSchema.cs" Link="Linked\Schema\XamlSchema.cs" />
+    <Compile Include="..\Schema\XamlSchemaLoader.cs" Link="Linked\Schema\XamlSchemaLoader.cs" />
+    <Compile Include="..\Schema\ElementInfo.cs" Link="Linked\Schema\ElementInfo.cs" />
+    <Compile Include="..\Schema\PropertyInfo.cs" Link="Linked\Schema\PropertyInfo.cs" />
+    <Compile Include="..\Schema\AttachedPropertyInfo.cs" Link="Linked\Schema\AttachedPropertyInfo.cs" />
+  </ItemGroup>
+
+  <!-- Embed the schema JSON with the same logical name the loader expects -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\Resources\a2v10-xaml-schema.json"
+                      LogicalName="A2v10XamlAutocomplete.Resources.a2v10-xaml-schema.json" />
+  </ItemGroup>
+
+</Project>
